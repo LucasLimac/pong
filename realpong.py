@@ -24,13 +24,32 @@ H = 2
 translate0 = 0
 translate1 = 0
 
-#cubo 1
+
+#cubo 1 e 2
 p1x = W/30
 p1y = H/2 - ((W/60)**2)/2
 
-#cubo 2
-p2x = W/30
-p2y = H/2 - ((W/60)**2)/2
+
+paddle_width = W/60
+paddle_height = paddle_width**2
+
+
+# esfera
+teta0 = (-math.pi)/2
+tetaF = (math.pi)/2
+phi0 = 0
+phiF = 2*math.pi
+r = 0.3
+dphi = math.pi/10
+dteta = math.pi/10
+ballX =  0.0
+ballY = 0.0
+ballXMax = 3.0
+ballYMax = 3.0
+ballXMin = -3.5
+ballYMin = -3.0
+xSpeed = 0.2
+ySpeed = 0.007
 
 vertices = (
     ( p1x,-p1y,-0.3),
@@ -69,7 +88,29 @@ faces = (
     )
  
 cores = ( (1,0,0),(1,1,0),(0,1,0),(0,1,1),(0,0,1),(1,0,1),(0.5,1,1),(1,0,0.5) )
+
+texture = []
  
+def loadTexture():
+    textureSurface = pygame.image.load('textura.png')
+    textureData = pygame.image.tostring(textureSurface, "RGBA", 1)
+    width = textureSurface.get_width()
+    height = textureSurface.get_height()
+
+    glEnable(GL_TEXTURE_2D)
+    texid = glGenTextures(1)
+
+    glBindTexture(GL_TEXTURE_2D, texid)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData)
+
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+
+    return texid
+
 def Cubo():
     glBegin(GL_QUADS)
     i = 0
@@ -90,14 +131,8 @@ def Cubo():
 
 
 
-# esfera
-teta0 = (-math.pi)/2
-tetaF = (math.pi)/2
-phi0 = 0
-phiF = 2*math.pi
-r = 0.3
-dphi = math.pi/10
-dteta = math.pi/10
+
+
 
 def Px(teta):    
     return r*cos(teta)
@@ -113,6 +148,7 @@ def Qz(r2, phi):
 
 
 def esfera():
+    global ballX, ballXMax, ballXMin, ballY, ballYMax, ballYMin, xSpeed, ySpeed
     teta = teta0
     phi = phi0
     glBegin(GL_LINES)
@@ -139,12 +175,54 @@ def esfera():
 
             phi += dphi
         teta += dteta
+    
+    #velocidade
+    ballX += xSpeed
+    ballY += ySpeed
+
+
+    #Chechar se passou do limites
+
+    #lado esquerdo <<----
+    if ballX > ballXMax:
+        ballX = ballXMax
+        xSpeed = -xSpeed
+    #lado direito -->>>
+    elif ballX < ballXMin:
+        ballX = ballXMin
+        xSpeed = -xSpeed
+    #lado inferior 
+    if ballY > ballYMax:
+        ballY = ballYMax
+        ySpeed = -ySpeed
+    #lado superior
+    elif ballY < ballYMin:
+        ballY = ballYMin
+        ySpeed = -ySpeed
+
     glEnd()
+
+
+def Base():
+    loadTexture()
+    glColor3d(0.5,0.5,1.0)
+    glBindTexture(GL_TEXTURE_2D, texture[0])
+    glBegin(GL_POLYGON)
+    #sup direito
+    glVertex2d(-4.5,-6.5)
+    #superior esquerdo
+    glVertex2d(3.8,-5.5)
+    #inferior esquerdo
+    glVertex2d(3.7,5)
+    glVertex2d(-4.3,5)
+    glEnd()
+    glFlush()
 
 def desenha():
     
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
     #glRotatef(2,1,3,0)
+    Base()
     glPushMatrix()
     glTranslatef(3.5,translate0,0.0)
     Cubo()
@@ -153,7 +231,11 @@ def desenha():
     glTranslatef(-4,translate1,0.0)
     Cubo()
     glPopMatrix()
+    #vel da esfera
+    glPushMatrix()
+    glTranslatef(ballX,ballY,0.0)
     esfera()
+    glPopMatrix()
     glutSwapBuffers()
   
 def timer(i):
@@ -174,15 +256,17 @@ def drawscore():
     score = comic.render(str(p1score) + " - " + str(p2score), False, WHITE)
     screen.blit(score, (W/2,30))
 
+
 def keyPressed(tecla, x, y):
-    global translate0
+    global translate0, translate1
 
     if tecla == b'w' or tecla == b'W':
         print("W")
         translate0 -= 0.1
     elif tecla == b's' or tecla == b'S':
         print("S")
-        translate0 += 0.1   
+        translate0 += 0.1 
+
     
 
 # PROGRAMA PRINCIPAL
