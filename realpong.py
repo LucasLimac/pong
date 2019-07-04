@@ -45,10 +45,10 @@ dteta = math.pi/10
 ballX =  0.0
 ballY = 0.0
 ballXMax = 3.0
-ballYMax = 3.0
+ballYMax = 4.0
 ballXMin = -3.5
-ballYMin = -3.0
-xSpeed = 0.2
+ballYMin = -5.0
+xSpeed = 0.1
 ySpeed = 0.007
 
 vertices = (
@@ -90,26 +90,7 @@ faces = (
 cores = ( (1,0,0),(1,1,0),(0,1,0),(0,1,1),(0,0,1),(1,0,1),(0.5,1,1),(1,0,0.5) )
 
 texture = []
- 
-def loadTexture():
-    textureSurface = pygame.image.load('textura.png')
-    textureData = pygame.image.tostring(textureSurface, "RGBA", 1)
-    width = textureSurface.get_width()
-    height = textureSurface.get_height()
 
-    glEnable(GL_TEXTURE_2D)
-    texid = glGenTextures(1)
-
-    glBindTexture(GL_TEXTURE_2D, texid)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,
-                 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData)
-
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-
-    return texid
 
 def Cubo():
     glBegin(GL_QUADS)
@@ -183,14 +164,25 @@ def esfera():
 
     #Chechar se passou do limites
 
+    
+    
+
     #lado esquerdo <<----
     if ballX > ballXMax:
         ballX = ballXMax
         xSpeed = -xSpeed
+        if abs(ySpeed) < 0.01:
+            ySpeed = translate0-ballY 
+        if -1 > (translate0-ballY) and  (translate0-ballY) < 1:
+            exit() 
     #lado direito -->>>
     elif ballX < ballXMin:
         ballX = ballXMin
         xSpeed = -xSpeed
+        if abs(ySpeed) < 0.01:
+            ySpeed = translate1-ballY
+        if -1 > (translate1-ballY) and  (translate1-ballY) < 1:
+            exit()
     #lado inferior 
     if ballY > ballYMax:
         ballY = ballYMax
@@ -204,9 +196,8 @@ def esfera():
 
 
 def Base():
-    loadTexture()
-    glColor3d(0.5,0.5,1.0)
-    glBindTexture(GL_TEXTURE_2D, texture[0])
+
+    glColor3d(0.0,0.0,0.7)
     glBegin(GL_POLYGON)
     #sup direito
     glVertex2d(-4.5,-6.5)
@@ -221,7 +212,7 @@ def Base():
 def desenha():
     
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
-    #glRotatef(2,1,3,0)
+    #glRotatef(2,1,3,0) 
     Base()
     glPushMatrix()
     glTranslatef(3.5,translate0,0.0)
@@ -243,28 +234,31 @@ def timer(i):
     glutTimerFunc(50,timer,1)
  
 def teclaEspecialPressionada(tecla, x, y):
-    global translate1             
+    global translate1      
+    print("TRANSLATE 1")
+    print((translate1-ballY))
+    print("TRANSLATE 0")
+    print((translate0-ballY))
+
+
     if tecla == GLUT_KEY_UP:
-        print ("CIMA")
         translate1 -= 0.1
     elif tecla == GLUT_KEY_DOWN:
-        print ("BAIXO")
         translate1 += 0.1
+
 
 
 def drawscore():
     score = comic.render(str(p1score) + " - " + str(p2score), False, WHITE)
-    screen.blit(score, (W/2,30))
+    screen.blit(score, (300,100))
 
 
 def keyPressed(tecla, x, y):
     global translate0, translate1
 
     if tecla == b'w' or tecla == b'W':
-        print("W")
         translate0 -= 0.1
     elif tecla == b's' or tecla == b'S':
-        print("S")
         translate0 += 0.1 
 
     
@@ -272,7 +266,7 @@ def keyPressed(tecla, x, y):
 # PROGRAMA PRINCIPAL
 
 ### Initialize
-screen = pygame.display.set_mode((W, H))
+screen = pygame.display.set_mode((300, 300))
 pygame.display.set_caption('Snake ML v.1.0.0')
 screen.fill(BLACK)
 pygame.display.flip()
@@ -292,7 +286,7 @@ glTranslatef(0.0,0.0,-12)
 #glRotatef(90.0, 10.0, 10.0, 90.0)
 glRotatef(180.0, 10.0, 10.0, 90.0)
 glutTimerFunc(50,timer,1)
-drawscore()
+
 glutKeyboardFunc(keyPressed)
 glutSpecialFunc(teclaEspecialPressionada)
 glutMainLoop() 
